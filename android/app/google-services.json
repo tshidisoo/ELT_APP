@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "1097341288012",
+    "project_id": "elt-app-7ca1b",
+    "storage_bucket": "elt-app-7ca1b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097341288012:android:85405bcdad7e96054e7ee9",
+        "android_client_info": {
+          "package_name": "com.elt.elt_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1097341288012-cejcmhab6gplhjncs5u0apjqila7bn93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQxkzZaDxVhdPwLccRsMlaH9kfv10Ga9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1097341288012-cejcmhab6gplhjncs5u0apjqila7bn93.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1097341288012-o1l91mvh68adbdav775np3fq68q2lhm1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.musicteam.musicTeamApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097341288012:android:2ece9e82b3481b2a4e7ee9",
+        "android_client_info": {
+          "package_name": "com.musicteam.music_team_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1097341288012-cejcmhab6gplhjncs5u0apjqila7bn93.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQxkzZaDxVhdPwLccRsMlaH9kfv10Ga9k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1097341288012-cejcmhab6gplhjncs5u0apjqila7bn93.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1097341288012-o1l91mvh68adbdav775np3fq68q2lhm1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.musicteam.musicTeamApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
