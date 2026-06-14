@@ -1,9 +1,11 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/project_model.dart';
 import '../../../core/services/project_service.dart';
 import '../../../shared/blocs/auth_bloc.dart';
+import 'game_player_screen.dart';
 import 'project_detail_screen.dart';
 
 class StudentProjectsScreen extends StatelessWidget {
@@ -42,13 +44,13 @@ class StudentProjectsScreen extends StatelessWidget {
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Projects',
+                      Text('Assignments',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                           )),
-                      Text('Theory + Maestro practicals',
+                      Text('Tasks, activities & games',
                           style:
                               TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
@@ -117,17 +119,35 @@ class _ProjectCard extends StatelessWidget {
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ProjectDetailScreen(
-                  project: project,
-                  studentId: studentId,
-                  existingSubmission: snap.data,
-                ),
-              ),
-            ),
-            child: Padding(
+            onTap: () => project.isLink
+                ? Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GamePlayerScreen(
+                        projectId: project.id,
+                        studentId: studentId,
+                        url: project.linkUrl ?? '',
+                        title: project.title,
+                      ),
+                    ),
+                  )
+                : Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProjectDetailScreen(
+                        project: project,
+                        studentId: studentId,
+                        existingSubmission: snap.data,
+                      ),
+                    ),
+                  ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Game/link thumbnail banner
+                if (project.isLink)
+                  _LinkThumbnail(project: project),
+                Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,8 +162,12 @@ class _ProjectCard extends StatelessWidget {
                           gradient: AppColors.secondaryGradient,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.assignment_rounded,
-                            color: Colors.white, size: 22),
+                        child: Icon(
+                            project.isLink
+                                ? Icons.videogame_asset_rounded
+                                : Icons.assignment_rounded,
+                            color: Colors.white,
+                            size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -181,24 +205,50 @@ class _ProjectCard extends StatelessWidget {
                       _StatusBadge(submitted: submitted, graded: graded),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  // Description preview
-                  Text(
-                    project.description.length > 120
-                        ? '${project.description.substring(0, 120)}...'
-                        : project.description,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  if (project.description.trim().isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    // Description preview
+                    Text(
+                      project.description.length > 120
+                          ? '${project.description.substring(0, 120)}...'
+                          : project.description,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   // Footer
                   Row(
                     children: [
-                      // Media allowed chips
-                      ...project.mediaAllowed
-                          .take(3)
-                          .map((m) => _MediaTypeChip(type: m)),
+                      if (project.isLink)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.play_arrow_rounded,
+                                  color: AppColors.success, size: 14),
+                              SizedBox(width: 2),
+                              Text('Play',
+                                  style: TextStyle(
+                                    color: AppColors.success,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  )),
+                            ],
+                          ),
+                        )
+                      else
+                        // Media allowed chips
+                        ...project.mediaAllowed
+                            .take(3)
+                            .map((m) => _MediaTypeChip(type: m)),
                       const Spacer(),
                       // XP reward
                       Container(
@@ -230,10 +280,99 @@ class _ProjectCard extends StatelessWidget {
                   ),
                 ],
               ),
+                ),
+              ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+// ─── Link / Game Thumbnail Banner ─────────────────────────────────────────────
+
+class _LinkThumbnail extends StatelessWidget {
+  final ProjectModel project;
+  const _LinkThumbnail({required this.project});
+
+  @override
+  Widget build(BuildContext context) {
+    final thumb = project.thumbnailUrl;
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (thumb != null && thumb.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: thumb,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                child: const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              errorWidget: (_, __, ___) => _fallback(),
+            )
+          else
+            _fallback(),
+          // Play overlay
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.0),
+                  Colors.black.withValues(alpha: 0.35),
+                ],
+              ),
+            ),
+          ),
+          const Center(
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.white,
+              child: Icon(Icons.play_arrow_rounded,
+                  color: AppColors.primary, size: 30),
+            ),
+          ),
+          if (project.linkSource != null)
+            Positioned(
+              top: 8,
+              left: 8,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  project.linkSource!.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fallback() {
+    return Container(
+      decoration: const BoxDecoration(gradient: AppColors.secondaryGradient),
+      child: const Center(
+        child: Icon(Icons.videogame_asset_rounded,
+            color: Colors.white, size: 48),
+      ),
     );
   }
 }

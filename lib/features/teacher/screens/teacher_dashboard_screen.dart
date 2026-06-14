@@ -701,7 +701,7 @@ class _SeedProjectsCardState extends State<_SeedProjectsCard> {
                               .titleMedium
                               ?.copyWith(fontWeight: FontWeight.w700)),
                       Text(
-                          'Load 10 pre-built projects (theory + Maestro tasks)',
+                          'Load 10 pre-built sample assignments',
                           style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ),

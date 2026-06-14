@@ -13,6 +13,7 @@ class TeacherShell extends StatelessWidget {
     if (location.startsWith(AppRoutes.teacherStudents)) return 1;
     if (location.startsWith(AppRoutes.teacherProjects)) return 2;
     if (location.startsWith(AppRoutes.teacherSubmissions)) return 3;
+    if (location.startsWith(AppRoutes.teacherProfile)) return 4;
     return 0; // Dashboard
   }
 
@@ -32,6 +33,8 @@ class TeacherShell extends StatelessWidget {
               context.go(AppRoutes.teacherProjects);
             case 3:
               context.go(AppRoutes.teacherSubmissions);
+            case 4:
+              context.go(AppRoutes.teacherProfile);
           }
         },
         items: const [
@@ -54,6 +57,11 @@ class TeacherShell extends StatelessWidget {
             icon: Icon(Icons.rate_review_outlined),
             activeIcon: Icon(Icons.rate_review_rounded),
             label: AppStrings.submissions,
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded),
+            activeIcon: Icon(Icons.person_rounded),
+            label: AppStrings.profile,
           ),
         ],
       ),

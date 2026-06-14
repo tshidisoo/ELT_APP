@@ -1,5 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Assignment kinds.
+/// - [media]  → student uploads files / notes (the original behaviour)
+/// - [link]   → teacher assigns an interactive link/game (GitHub Pages,
+///              Wordwall, etc.); students open it in an in-app WebView.
+class ProjectType {
+  ProjectType._();
+  static const String media = 'media';
+  static const String link = 'link';
+}
+
 class ProjectModel {
   final String id;
   final String title;
@@ -10,6 +20,12 @@ class ProjectModel {
   final bool isActive;
   final DateTime createdAt;
 
+  // ── Interactive link / game assignments ──────────────────────────────────
+  final String type; // 'media' (default) or 'link'
+  final String? linkUrl; // the external game/activity URL
+  final String? thumbnailUrl; // resolved preview image for the card
+  final String? linkSource; // 'github' | 'wordwall' | 'other'
+
   const ProjectModel({
     required this.id,
     required this.title,
@@ -19,7 +35,13 @@ class ProjectModel {
     this.mediaAllowed = const ['video', 'audio', 'pdf', 'image'],
     this.isActive = true,
     required this.createdAt,
+    this.type = ProjectType.media,
+    this.linkUrl,
+    this.thumbnailUrl,
+    this.linkSource,
   });
+
+  bool get isLink => type == ProjectType.link;
 
   factory ProjectModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -35,6 +57,10 @@ class ProjectModel {
       createdAt: data['createdAt'] != null
           ? (data['createdAt'] as Timestamp).toDate()
           : DateTime.now(),
+      type: data['type'] ?? ProjectType.media,
+      linkUrl: data['linkUrl'],
+      thumbnailUrl: data['thumbnailUrl'],
+      linkSource: data['linkSource'],
     );
   }
 
@@ -46,6 +72,10 @@ class ProjectModel {
         'mediaAllowed': mediaAllowed,
         'isActive': isActive,
         'createdAt': Timestamp.fromDate(createdAt),
+        'type': type,
+        'linkUrl': linkUrl,
+        'thumbnailUrl': thumbnailUrl,
+        'linkSource': linkSource,
       };
 
   bool get isPastDue => DateTime.now().isAfter(dueDate);

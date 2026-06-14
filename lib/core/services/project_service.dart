@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import '../models/project_model.dart';
 import '../constants/app_constants.dart';
 
@@ -71,6 +72,144 @@ class ProjectService {
         .collection(AppConstants.projectsCollection)
         .doc(projectId)
         .update({'isActive': isActive});
+  }
+
+  // ─── Interactive link / game assignments ────────────────────────────────────
+
+  /// Create a "link" assignment from a pasted URL (GitHub Pages game, Wordwall,
+  /// or any web activity). A thumbnail is resolved automatically unless the
+  /// teacher supplies one.
+  Future<String> createLinkProject({
+    required String title,
+    required String description,
+    required DateTime dueDate,
+    required String teacherId,
+    required String linkUrl,
+    String? thumbnailUrl,
+  }) async {
+    final resolvedThumb =
+        (thumbnailUrl != null && thumbnailUrl.trim().isNotEmpty)
+            ? thumbnailUrl.trim()
+            : await resolveThumbnail(linkUrl);
+
+    final ref = _db.collection(AppConstants.projectsCollection).doc();
+    await ref.set({
+      'title': title,
+      'description': description,
+      'dueDate': Timestamp.fromDate(dueDate),
+      'assignedBy': teacherId,
+      'type': ProjectType.link,
+      'linkUrl': linkUrl.trim(),
+      'thumbnailUrl': resolvedThumb,
+      'linkSource': detectLinkSource(linkUrl),
+      'mediaAllowed': const <String>[],
+      'isActive': true,
+      'createdAt': Timestamp.fromDate(DateTime.now()),
+    });
+    return ref.id;
+  }
+
+  /// Detects a friendly source tag for icon/badge display.
+  static String detectLinkSource(String url) {
+    final u = url.toLowerCase();
+    if (u.contains('github.io') || u.contains('github.com')) return 'github';
+    if (u.contains('wordwall')) return 'wordwall';
+    return 'other';
+  }
+
+  /// Layered thumbnail resolution:
+  /// 1. Try the page's Open Graph / Twitter image meta tag.
+  /// 2. Fall back to a live screenshot service (Microlink) that renders the
+  ///    page and returns an image for any URL.
+  /// Returns a usable image URL (the screenshot fallback never fails).
+  Future<String?> resolveThumbnail(String url) async {
+    final ogImage = await _fetchOgImage(url);
+    if (ogImage != null && ogImage.isNotEmpty) return ogImage;
+    return _screenshotUrl(url);
+  }
+
+  /// Live-screenshot fallback. The `embed=screenshot.url` param makes Microlink
+  /// return the rendered image directly, so it can be loaded by an <Image>.
+  static String _screenshotUrl(String url) {
+    final encoded = Uri.encodeComponent(url);
+    return 'https://api.microlink.io/?url=$encoded'
+        '&screenshot=true&meta=false&embed=screenshot.url';
+  }
+
+  Future<String?> _fetchOgImage(String url) async {
+    try {
+      final resp = await http.get(
+        Uri.parse(url),
+        headers: {'User-Agent': 'Mozilla/5.0 (compatible; ELTHubBot/1.0)'},
+      ).timeout(const Duration(seconds: 8));
+      if (resp.statusCode != 200) return null;
+      final html = resp.body;
+
+      for (final prop in ['og:image', 'twitter:image', 'twitter:image:src']) {
+        final found = _metaContent(html, prop);
+        if (found != null) return _absolutize(found, url);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('[ProjectService] og:image fetch failed: $e');
+      return null;
+    }
+  }
+
+  /// Extracts a <meta> content value, handling either attribute order
+  /// (property/name before or after content).
+  static String? _metaContent(String html, String property) {
+    final patterns = [
+      RegExp(
+        '<meta[^>]+(?:property|name)=["\']${RegExp.escape(property)}["\'][^>]+content=["\']([^"\']+)["\']',
+        caseSensitive: false,
+      ),
+      RegExp(
+        '<meta[^>]+content=["\']([^"\']+)["\'][^>]+(?:property|name)=["\']${RegExp.escape(property)}["\']',
+        caseSensitive: false,
+      ),
+    ];
+    for (final re in patterns) {
+      final m = re.firstMatch(html);
+      if (m != null) return m.group(1);
+    }
+    return null;
+  }
+
+  /// Resolves protocol-relative or root-relative image URLs against the page.
+  static String _absolutize(String imageUrl, String pageUrl) {
+    if (imageUrl.startsWith('http')) return imageUrl;
+    if (imageUrl.startsWith('//')) return 'https:$imageUrl';
+    try {
+      return Uri.parse(pageUrl).resolve(imageUrl).toString();
+    } catch (_) {
+      return imageUrl;
+    }
+  }
+
+  /// Marks a link/game assignment as "played" once and awards XP only the
+  /// first time. Returns true if this was the first play (XP should be shown).
+  Future<bool> markLinkPlayed({
+    required String projectId,
+    required String studentId,
+    required String studentName,
+  }) async {
+    final existing = await getStudentSubmission(projectId, studentId);
+    if (existing != null) return false;
+    final ref = _db.collection(AppConstants.submissionsCollection).doc();
+    await ref.set({
+      'projectId': projectId,
+      'studentId': studentId,
+      'studentName': studentName,
+      'notes': 'Opened the activity',
+      'mediaFiles': const [],
+      'submittedAt': Timestamp.fromDate(DateTime.now()),
+      'grade': null,
+      'feedback': null,
+      'gradedAt': null,
+      'gradedBy': null,
+    });
+    return true;
   }
 
   // ─── Submissions ──────────────────────────────────────────────────────────
