@@ -1,5 +1,5 @@
 name: music_team_app
-description: A music learning app for the team — lessons, practice, projects, and gamification.
+description: ELT Hub — an English language learning app with lessons, practice, assignments, games, and gamification.
 publish_to: "none"
 version: 1.0.0+1
 
@@ -59,6 +59,10 @@ dependencies:
   uuid: ^4.5.1
   path_provider: ^2.1.5
   connectivity_plus: ^7.0.0
+
+  # Interactive link/game assignments (in-app WebView + link thumbnails)
+  webview_flutter: ^4.10.0
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

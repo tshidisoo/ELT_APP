@@ -12,11 +12,10 @@ import '../features/unit_lessons/screens/unit_lessons_hub_screen.dart';
 import '../features/unit_lessons/screens/unit_lesson_detail_screen.dart';
 import '../core/models/unit_lesson_model.dart';
 import '../features/profile/screens/profile_screen.dart';
+import '../features/profile/screens/teacher_profile_screen.dart';
 import '../features/practice/screens/practice_screen.dart';
 import '../features/projects/screens/student_projects_screen.dart';
 import '../features/daily_challenge/screens/daily_challenge_screen.dart';
-import '../features/piano/screens/piano_screen.dart';
-import '../features/ear_training/screens/ear_training_hub_screen.dart';
 import '../features/battle/screens/battle_lobby_screen.dart';
 import '../features/teacher/screens/teacher_shell.dart';
 import '../features/teacher/screens/teacher_dashboard_screen.dart';
@@ -56,6 +55,7 @@ class AppRoutes {
   static const teacherProjects = '/teacher/projects';
   static const teacherSubmissions = '/teacher/submissions';
   static const teacherDailySchedule = '/teacher/daily-schedule';
+  static const teacherProfile = '/teacher/profile';
   static const unitLessonDetail = '/student/lessons/detail';
   static const teacherListening = '/teacher/listening';
 }
@@ -171,14 +171,6 @@ GoRouter buildRouter(AuthBloc authBloc) {
             builder: (_, __) => const DailyChallengeScreen(),
           ),
           GoRoute(
-            path: AppRoutes.studentPiano,
-            builder: (_, __) => const PianoScreen(),
-          ),
-          GoRoute(
-            path: AppRoutes.studentEarTraining,
-            builder: (_, __) => const EarTrainingHubScreen(),
-          ),
-          GoRoute(
             path: AppRoutes.studentBattle,
             builder: (_, __) => const BattleLobbyScreen(),
           ),
@@ -233,6 +225,10 @@ GoRouter buildRouter(AuthBloc authBloc) {
           GoRoute(
             path: AppRoutes.teacherListening,
             builder: (_, __) => const TeacherListeningScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.teacherProfile,
+            builder: (_, __) => const TeacherProfileScreen(),
           ),
         ],
       ),

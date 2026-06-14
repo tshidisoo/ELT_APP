@@ -267,13 +267,13 @@ class _StreakXpCard extends StatelessWidget {
 
   Color _levelColor(String level) {
     switch (level) {
-      case 'Maestro':
+      case 'Fluent':
         return AppColors.levelMaestro;
-      case 'Musician':
+      case 'Achiever':
         return AppColors.levelMusician;
-      case 'Student':
+      case 'Communicator':
         return AppColors.levelStudent;
-      case 'Apprentice':
+      case 'Explorer':
         return AppColors.levelApprentice;
       default:
         return AppColors.levelNovice;
@@ -290,7 +290,7 @@ class _StreakXpCard extends StatelessWidget {
         return '$remaining XP to ${names[i + 1]}';
       }
     }
-    return 'Maximum level reached — Maestro!';
+    return 'Maximum level reached — Fluent!';
   }
 }
 
@@ -410,18 +410,6 @@ class _QuickAccessGrid extends StatelessWidget {
               color: AppColors.secondaryDark,
               onTap: () => context.go(AppRoutes.studentSpeaking),
             ),
-          _QuickCard(
-            icon: Icons.auto_stories_rounded,
-            label: 'Storytime',
-            color: AppColors.primaryLight,
-            onTap: () => context.go(AppRoutes.studentPiano),
-          ),
-          _QuickCard(
-            icon: Icons.face_rounded,
-            label: 'Avatar',
-            color: AppColors.secondary,
-            onTap: () => context.go(AppRoutes.studentEarTraining),
-          ),
           if (toggles['battle'] ?? true)
             _QuickCard(
               icon: Icons.sports_esports_rounded,
